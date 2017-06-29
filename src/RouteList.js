@@ -41,7 +41,7 @@ class RouteList extends Component{
             let html = '<h1>Selected Routes:</h1><ul>';
             for(var tags in this.state.selectedRoutes){                
                 if(this.state.selectedRoutes[tags] === true){
-                    html += '<li>' + tags + '</li>';
+                    html += '<li>' + tags + '&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;<span style="background-color:' + this.getHexColorFromString(tags) + '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li>';
                     isAllUnselected = false;
                 }
             }
@@ -49,6 +49,19 @@ class RouteList extends Component{
             this.refs.selected_routes.innerHTML = (!isAllUnselected) ? html : '<h3>All routes selected</h3>';            
             this.props.onChange(this.state.selectedRoutes);
         }
+    }
+
+    getHexColorFromString(str){        
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#';
+        for (i = 0; i < 3; i++) {
+            var value = (hash >> (i * 8)) & 0xFF;
+            colour += ('66' + value.toString(16)).substr(-2);
+        }
+        return colour;
     }
 
     onRouteChange(val){          
