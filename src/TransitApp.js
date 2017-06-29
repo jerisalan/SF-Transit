@@ -5,14 +5,14 @@ import axios from 'axios';
 import './TransitApp.css';
 import RouteList from './RouteList';
 
-import arteriesJSON from './arteries.json';
-import freewaysJSON from './freeways.json';
-import neighborhoodsJSON from './neighborhoods.json';
-import streetsJSON from './streets.json';
+import arteriesJSON from './sfmaps/arteries.json';
+import freewaysJSON from './sfmaps/freeways.json';
+import neighborhoodsJSON from './sfmaps/neighborhoods.json';
+import streetsJSON from './sfmaps/streets.json';
 
 let lasttime = 0;
-let width = window.innerWidth * 0.8 - 18;
-let height = window.innerHeight;
+let width = window.innerWidth * 0.8 - 24;
+let height = window.innerHeight - 20;
 let projection = null;
 
 class TransitApp extends Component {
@@ -21,52 +21,25 @@ class TransitApp extends Component {
         this.state = {
             muni_vehicles: null,            
             path: {},
-            routes: null,
-            lastUpdateTime: null            
+            routes: null,            
         };
         this.onRoutesChanged = this.onRoutesChanged.bind(this);
     }
 
     componentDidMount(){        
-
         let mapSvg = d3.select('div.maps-panel')
             .append('svg')
             .attr('width', width)
             .attr('height', height);
+        
         projection = d3.geoMercator().scale(1).translate([0, 0]).precision(0);
         projection.fitSize([width, height], neighborhoodsJSON);
 		const geoPath = d3.geoPath().projection(projection);        
-        
-        let streets = mapSvg.append('g');
-        streets.selectAll('path')
-            .data(streetsJSON.features)
-            .enter()
-            .append('path')
-            .attr("class", "streets")
-            .attr('d', geoPath);
-
-        let neighborhoods = mapSvg.append('g');
-        neighborhoods.selectAll('path')
-            .data(neighborhoodsJSON.features)
-            .enter()            
-            .append('path')
-            .attr("class", "neighborhoods")
-            .attr('d', geoPath);
-
-        let arteries = mapSvg.append('g');
-        arteries.selectAll('path')
-            .data(arteriesJSON.features)
-            .enter()
-            .append('path')
-            .attr("class", "arteries")
-            .attr('d'.geoPath);
-
-        let freeways = mapSvg.append('g');
-        freeways.selectAll('path')
-            .data(freewaysJSON.features)
-            .enter()
-            .append('path')
-            .attr('d'.geoPath);
+                
+        let streets = this.generateMapItem(mapSvg, streetsJSON, geoPath, 'streets');
+        let neighborhoods = this.generateMapItem(mapSvg, neighborhoodsJSON, geoPath, 'neighborhoods');
+        let arteries = this.generateMapItem(mapSvg, arteriesJSON, geoPath, 'arteries');
+        let freeways = this.generateMapItem(mapSvg, freewaysJSON, geoPath, 'freeways');        
         
         let muni_vehicles = mapSvg.append("g");
         this.setState({
@@ -75,13 +48,25 @@ class TransitApp extends Component {
         });            
     }
 
+    generateMapItem = (mapSvg, data, geoPath, className) => {
+        return mapSvg.append("g")
+            .selectAll('path')
+            .data(data.features)
+            .enter()
+            .append('path')
+            .attr('class', className)
+            .attr('d', geoPath);
+    }    
+
     componentDidUpdate(prevProps, prevState){
         if(prevState.muni_vehicles !== this.state.muni_vehicles || prevState.routes !== this.state.routes){            
             this.getVehicleLocations();
-            this.timer = setTimeout(() => this.setState({lastUpdateTime: lasttime}), 5000);
-            console.log('Called update vehicle locations');
+            if(this.timer){
+                clearTimeout(this.timer);
+            }
+            this.timer = setTimeout(() => this.getVehicleLocations(), 5000);
         }                 
-    }
+    }    
 
     getVehicleLocations = () => { 
         let self = this;
@@ -93,18 +78,16 @@ class TransitApp extends Component {
             }                
         }     
         if(isAllUnselected){
-            console.log('Nothing selected');
             lasttime = 0;
-        }            
-        const restURL = 'http://webservices.nextbus.com/service/publicJSONFeed?command=vehicleLocations&a=sf-muni&t=' + lasttime;
-        clearTimeout(this.timer);
+        }
+
+        const restURL = 'http://webservices.nextbus.com/service/publicJSONFeed?command=vehicleLocations&a=sf-muni&t=0';
         axios.get(restURL)
             .then(response => {                
-                console.log('displaying locations');
                 let vehicleLocations = response.data.vehicle;
-                console.log(vehicleLocations);
-
+                
                 if(response.data && response.data.lastTime){
+                    //Store the last queried time for later use
                     lasttime = response.data.lastTime.time;                    
                 }
 
@@ -117,27 +100,21 @@ class TransitApp extends Component {
                 if(self.state.routes !== null){
                     isRoutesFiltered = true;
                 }
+                //If none of the route tags are selected, then display all vehicles on all routes
                 if(isRoutesFiltered && self.state.routes && !isAllUnselected){
                     let tempVehicles = vehicleLocations;
                     let filteredList = [];
                     for(var vehicle in tempVehicles){
+                        //Check if the route tag is selected and filter out only those to display
                         if(self.state.routes[tempVehicles[vehicle].routeTag] === true){
                             filteredList.push(tempVehicles[vehicle]);
-                        }
-                        //d3.selectAll('#'+tempVehicles[vehicle].id).remove();
-                        d3.selectAll('.sfmunis').remove();
-                    }
-                    // let oldVehicleLocations = self.state.muni_vehicles;
-                    // for(vehicle in oldVehicleLocations){
-                    //     if(self.state.routes[oldVehicleLocations[vehicle].routeTag] === true){
-                    //         filteredList.push(oldVehicleLocations[vehicle]);
-                    //     }
-                    // }                                   
+                        }                        
+                    }                                                     
                     vehicleLocations = filteredList;
                 }
-                console.log('Filtered list');
-                console.log(vehicleLocations);
-                //Display the vehicles on the map.
+                d3.selectAll('.sfmunis').remove();
+                
+                // Draw vehicles on the svg map
                 let vehiclesPlot = this.state.muni_vehicles
                     .selectAll('path')
                     .data(vehicleLocations)
@@ -156,7 +133,7 @@ class TransitApp extends Component {
                         var colour = '#';
                         for (i = 0; i < 3; i++) {
                             var value = (hash >> (i * 8)) & 0xFF;
-                            colour += ('77' + value.toString(16)).substr(-2);
+                            colour += ('66' + value.toString(16)).substr(-2);
                         }
                         return colour;
                     })
@@ -167,6 +144,7 @@ class TransitApp extends Component {
 					.attr("cy", function (d) { 
 						return projection([d.lon,d.lat])[1]; 
 					})
+                    //Tooltip for display bus information
                     .on("mouseover", function(d) {		
                         tooltipDiv.transition()		
                             .duration(200)		
@@ -181,15 +159,12 @@ class TransitApp extends Component {
                             .style("opacity", 0);	
                     })
                     .attr('d', this.state.geoPath);
-                console.log('Done plotting');
                 vehiclesPlot.exit().remove();                
             }
         );        
     };
 
     onRoutesChanged(routes){
-        console.log("In TransitApp");
-        console.log(routes);
         this.setState({
             routes: routes
         });

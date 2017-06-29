@@ -7,8 +7,8 @@ svg {
     display: table-cell;
     width: 20vw;
     height: 100vh;
-    float: left;
-    overflow-y: scroll;
+    float: left;   
+    overflow-y: auto; 
 }
 
 .maps-panel {
@@ -16,17 +16,12 @@ svg {
     width: calc(80vw - 18px);
     height: 100vh;
     float: left;  
-    overflow-y: overlay;  
+    overflow-y: hidden;  
+    overflow-x: hidden;
+    padding: 4px 0 0 4px;
 }
 
-.neighborhoods {
-    fill: none;
-    stroke: #fff;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-.streets {
+.neighborhoods, .streets, .arteries, .freeways{
     fill: none;
     stroke: #fff;
     stroke-linecap: round;

@@ -11,7 +11,7 @@ class RouteList extends Component{
         super();        
         this.state = {
             allRoutes: [],
-            selectedRoutes: []
+            selectedRoutes: []            
         };
         this.onRouteChange = this.onRouteChange.bind(this);
     }    
@@ -20,15 +20,15 @@ class RouteList extends Component{
         //Retrieve the SF-Muni route list        
         axios.get('http://webservices.nextbus.com/service/publicJSONFeed?command=routeList&a=sf-muni')
             .then(response => {
-                //console.log(response.data.route);
                 response.data.route.map(route =>
                     options.push({
                         label: route.tag,
                         value: route.title
                     })
                 )
-                //console.log(options);
-                this.setState({ allRoutes: response.data.route });
+                this.setState({ 
+                    allRoutes: response.data.route 
+                });
             })
             .catch((error) => {
                 console.log(error);
@@ -36,16 +36,25 @@ class RouteList extends Component{
     }
 
     componentDidUpdate(prevProps, prevState){
-        console.log('Previous state');
-        console.log(prevState.selectedRoutes);
         if(prevState.selectedRoutes !== this.state.selectedRoutes){
+            console.log('Props updated');
+            let isAllUnselected = true;
+            let html = '<h1>Selected Routes:</h1><ul>';
+            for(var tags in this.state.selectedRoutes){                
+                if(this.state.selectedRoutes[tags] === true){
+                    html += '<li>' + tags + '</li>';
+                    isAllUnselected = false;
+                }
+            }
+            html += '</ul>';
+            this.refs.selected_routes.innerHTML = (!isAllUnselected) ? html : '<h3>All routes selected</h3>';            
             this.props.onChange(this.state.selectedRoutes);
         }
     }
 
-    onRouteChange(val){                
+    onRouteChange(val){          
         this.setState({
-            selectedRoutes: Object.assign({}, this.state.selectedRoutes, { [val[0].label]: !this.state.selectedRoutes[val[0].label]})
+            selectedRoutes: Object.assign({}, this.state.selectedRoutes, { [val[0].label]: !this.state.selectedRoutes[val[0].label]}),
         });
     }
 
@@ -53,12 +62,7 @@ class RouteList extends Component{
         return(
             <div className='route-list'>
                 <h1>Transit Routes</h1>
-                <div>
-                    {/*{this.state.allRoutes.map(route =>                        
-                        <div>
-                        <input id={route.tag} type='checkbox' checked={this.state.selectedRoutes[route.tag] || false} name={route.tag} onChange={this.handleInputChange(route)}/>{route.title}                        
-                        </div>
-                    )}*/}
+                <div>                    
                     <Select
                         name="search-field"
                         multi = {true}
@@ -67,6 +71,9 @@ class RouteList extends Component{
                         placeholder = "Select route(s)"
                         onChange = {this.onRouteChange}
                     />
+                    <div ref='selected_routes' className='selected_routes'>
+                        <h3>All routes selected</h3>
+                    </div>
                 </div>
             </div>
         );
