@@ -16,6 +16,7 @@
     "react-scripts": "1.0.7"
   },
   "scripts": {
+    "postinstall": "npm run build",
     "serve": "serve -s build",
     "start": "react-scripts start",
     "build": "react-scripts build",
