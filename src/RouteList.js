@@ -36,8 +36,7 @@ class RouteList extends Component{
     }
 
     componentDidUpdate(prevProps, prevState){
-        if(prevState.selectedRoutes !== this.state.selectedRoutes){
-            console.log('Props updated');
+        if(prevState.selectedRoutes !== this.state.selectedRoutes){            
             let isAllUnselected = true;
             let html = '<h1>Selected Routes:</h1><ul>';
             for(var tags in this.state.selectedRoutes){                
