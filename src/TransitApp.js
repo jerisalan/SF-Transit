@@ -21,7 +21,9 @@ class TransitApp extends Component {
         this.state = {
             muni_vehicles: null,            
             path: {},
-            routes: null,            
+            routes: null, 
+            _timer: null,
+            time: 0    
         };
         this.onRoutesChanged = this.onRoutesChanged.bind(this);
     }
@@ -45,7 +47,7 @@ class TransitApp extends Component {
         this.setState({
             muni_vehicles: muni_vehicles,
             path: geoPath
-        });            
+        });        
     }
 
     generateMapItem = (mapSvg, data, geoPath, className) => {
@@ -56,15 +58,17 @@ class TransitApp extends Component {
             .append('path')
             .attr('class', className)
             .attr('d', geoPath);
+    }
+
+    componentWillUnmount(){
+        clearInterval(this._timer);
     }    
 
     componentDidUpdate(prevProps, prevState){
-        if(prevState.muni_vehicles !== this.state.muni_vehicles || prevState.routes !== this.state.routes){            
-            this.getVehicleLocations();
-            if(this.timer){
-                clearTimeout(this.timer);
-            }
-            this.timer = setTimeout(() => this.getVehicleLocations(), 5000);
+        if(prevState.muni_vehicles !== this.state.muni_vehicles || 
+            prevState.routes !== this.state.routes || 
+            prevState.time !== this.state.time){            
+            this.getVehicleLocations();            
         }                 
     }    
 
@@ -80,16 +84,17 @@ class TransitApp extends Component {
         if(isAllUnselected){
             lasttime = 0;
         }
-
+        
         const restURL = 'http://webservices.nextbus.com/service/publicJSONFeed?command=vehicleLocations&a=sf-muni&t=0';
         axios.get(restURL)
             .then(response => {                
-                let vehicleLocations = response.data.vehicle;
+                let vehicleLocations = response.data.vehicle;                
                 
                 if(response.data && response.data.lastTime){
                     //Store the last queried time for later use
                     lasttime = response.data.lastTime.time;                    
                 }
+                this._timer = setInterval(() => this.setState({time: lasttime}),15000);
 
                 let tooltipDiv = d3.select("body").append("div")	
                     .attr("class", "tooltip")				

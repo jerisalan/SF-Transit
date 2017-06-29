@@ -9,16 +9,18 @@ svg {
     height: 100vh;
     float: left;   
     overflow-y: auto; 
+    background-color: honeydew;
 }
 
 .maps-panel {
     display: table-cell;
-    width: calc(80vw - 18px);
+    width: 80vw;
     height: 100vh;
     float: left;  
     overflow-y: hidden;  
     overflow-x: hidden;
     padding: 4px 0 0 4px;
+    background-color: honeydew;
 }
 
 .neighborhoods, .streets, .arteries, .freeways{
