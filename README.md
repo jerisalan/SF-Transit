@@ -1,5 +1,7 @@
 ## SF-Transit App
-This is a simple React JS starter application to visualize the transit routes of San Francisco using d3.js by consuming the NextBus API. 
+This is a simple React JS starter application to visualize the transit routes of San Francisco using d3.js by consuming the NextBus API.
+
+Sample [Demo](https://jerisalan.github.io/transit-app/). You will have to enable 'load unsafe scripts' option in your browser.
 
 ## How to run
 1. Clone the project to local machine using the command `git clone https://github.com/jerisalan/transit-app.git`
