@@ -2,6 +2,17 @@
   padding: 4px;
 }
 
+table{
+  width: 100%;
+}
+
+tr, th, td {
+    width: 50%;
+    text-align: left;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
 /**
  * React Select
  * ============

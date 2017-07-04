@@ -38,14 +38,15 @@ class RouteList extends Component{
     componentDidUpdate(prevProps, prevState){
         if(prevState.selectedRoutes !== this.state.selectedRoutes){            
             let isAllUnselected = true;
-            let html = '<h1>Selected Routes:</h1><ul>';
+            let html = '<table><caption><h3>Selected Routes:</h3></caption>' + 
+                            '<tr><th>Route</th><th>Color</th></tr>';
             for(var tags in this.state.selectedRoutes){                
                 if(this.state.selectedRoutes[tags] === true){
-                    html += '<li>' + tags + '&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;<span style="background-color:' + this.getHexColorFromString(tags) + '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li>';
+                    html += '<tr><td>' + tags + '</td><td style="background-color:' + this.getHexColorFromString(tags) + '"></td></tr>';
                     isAllUnselected = false;
                 }
             }
-            html += '</ul>';
+            html += '</table>';
             this.refs.selected_routes.innerHTML = (!isAllUnselected) ? html : '<h3>All routes selected</h3>';            
             this.props.onChange(this.state.selectedRoutes);
         }
